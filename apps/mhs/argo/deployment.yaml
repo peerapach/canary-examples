@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: api-argo
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: api-argo
+  template:
+    metadata:
+      labels:
+        app: api-argo
+    spec:
+      containers:
+      - name: api-argo
+        image: eexit/mirror-http-server:1.1.0
+        ports:
+        - containerPort: 80
+  minReadySeconds: 30
+  revisionHistoryLimit: 3
+  strategy:
+    canary: #Indicates that the rollout should use the Canary strategy
+      maxSurge: "25%"
+      maxUnavailable: 0
+      dynamicStableScale: true
+      steps:
+      - setCanaryScale:
+        matchTrafficWeight: true
+      - setWeight: 10
+      - pause:
+          duration: 1h # 1 hour
+      - setWeight: 20
+      # - pause: {} # pause indefinitely
+      - pause: { duration: 10 }  # 10 seconds
+      - pause: { duration: 10s } # 10 seconds

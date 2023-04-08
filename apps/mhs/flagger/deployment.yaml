@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-flagger
+  labels:
+    app: api-flagger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-flagger
+  template:
+    metadata:
+      labels:
+        app: api-flagger
+    spec:
+      containers:
+      - name: api-flagger
+        image: eexit/mirror-http-server:1.1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+          - name: http
+            containerPort: 80
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http

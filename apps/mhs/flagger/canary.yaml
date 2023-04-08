@@ -1,0 +1,89 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: api-flagger
+  namespace: default
+spec:
+  # deployment reference
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-flagger
+  # the maximum time in seconds for the canary deployment
+  # to make progress before it is rollback (default 600s)
+  progressDeadlineSeconds: 60
+  # HPA reference (optional)
+  autoscalerRef:
+    apiVersion: autoscaling/v2beta2
+    kind: HorizontalPodAutoscaler
+    name: api-flagger
+  service:
+    # service port number
+    port: 80
+    # container port number or name (optional)
+    targetPort: 80
+    # Istio gateways (optional)
+    gateways:
+    - api-gateway
+    # Istio virtual service host names (optional)
+    hosts:
+    - api.example.com
+    # Istio traffic policy (optional)
+    trafficPolicy:
+      tls:
+        # use ISTIO_MUTUAL when mTLS is enabled
+        mode: DISABLE
+    # Istio retry policy (optional)
+    match:
+      - uri:
+          exact: /api
+    retries:
+      attempts: 3
+      perTryTimeout: 1s
+      retryOn: "gateway-error,connect-failure,refused-stream"
+  analysis:
+    # schedule interval (default 60s)
+    interval: 1m
+    # max number of failed metric checks before rollback
+    threshold: 3
+    # max traffic percentage routed to canary
+    # percentage (0-100)
+    maxWeight: 50
+    # canary increment step
+    # percentage (0-100)
+    stepWeight: 5
+    # match:
+    #   - headers:
+    #       user-agent:
+    #         regex: ".*Firefox.*"
+    #   - headers:
+    #       cookie:
+    #         regex: "^(.*?;)?(type=insider)(;.*)?$"
+    metrics:
+    - name: error-rate
+      templateRef:
+        name: error-rate
+        namespace: istio-system
+      thresholdRange:
+        max: 1
+      interval: 1m
+    - name: request-latency
+      templateRef:
+        name: latency
+        namespace: istio-system
+      threshold: 200
+      interval: 1m
+    # testing (optional)
+    # webhooks:
+    #   - name: acceptance-test
+    #     type: pre-rollout
+    #     url: http://flagger-loadtester.default/
+    #     timeout: 30s
+    #     metadata:
+    #       type: bash
+    #       cmd: "curl -sd 'test' http://api-canary.default:9080/health"
+    #   - name: load-test
+    #     url: http://flagger-loadtester.default/
+    #     timeout: 5s
+    #     metadata:
+    #       cmd: "hey -z 2m -q 10 -c 2 http://api-canary.default:9080/health"
