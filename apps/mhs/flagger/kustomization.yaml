@@ -9,7 +9,7 @@ resources:
 - loadtester.yaml
 
 components:
-- ../common
+- ../common-gateway
 
 images:
 - name: eexit/mirror-http-server

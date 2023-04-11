@@ -5,10 +5,11 @@ resources:
 - deployment.yaml
 - hpa.yaml
 - service.yaml
+- vsvc.yaml
 
 components:
-- ../common
+- ../common-gateway
 
 images:
 - name: eexit/mirror-http-server
-  newTag: 1.1.0
+  newTag: 1.1.1

@@ -3,7 +3,7 @@ kind: Rollout
 metadata:
   name: api-argo
 spec:
-  replicas: 10
+  replicas: 2
   selector:
     matchLabels:
       app: api-argo
@@ -23,14 +23,36 @@ spec:
     canary: #Indicates that the rollout should use the Canary strategy
       maxSurge: "25%"
       maxUnavailable: 0
-      dynamicStableScale: true
+      canaryService: api-argo-canary
+      stableService: api-argo
+      analysis:
+        templates:
+        - templateName: success-rate
+          clusterScope: true
+        - templateName: latency
+          clusterScope: true
+        args:
+        - name: namespace
+          value: default
+        - name: service-name
+          value: api-argo-canary
+        startingStep: 1
       steps:
       - setCanaryScale:
-        matchTrafficWeight: true
+          matchTrafficWeight: true
       - setWeight: 10
       - pause:
-          duration: 1h # 1 hour
-      - setWeight: 20
-      # - pause: {} # pause indefinitely
-      - pause: { duration: 10 }  # 10 seconds
-      - pause: { duration: 10s } # 10 seconds
+          duration: 2m
+      - setWeight: 15
+      - pause: { duration: 120 }
+      - setWeight: 25
+      - pause: { duration: 120s }
+      - setWeight: 50
+      - pause: {duration: 3m}
+      trafficRouting:
+        istio:
+          # Either virtualService or virtualServices can be configured.
+          virtualService: 
+            name: api-argo-vsvc  # required
+            routes:
+            - primary # optional if there is a single route in VirtualService, required otherwise

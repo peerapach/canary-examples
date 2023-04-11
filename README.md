@@ -7,7 +7,7 @@ make minikube
 
 ## Setup istio
 ```
-make setup
+make istio
 ```
 
 ## Setup flagger

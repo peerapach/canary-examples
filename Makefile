@@ -5,25 +5,31 @@ endef
 minikube:
 	minikube start --memory=10240 --cpus=4 --kubernetes-version=v1.25.2
 
-setup:
+istio:
 	@echo "install istio"
 	curl -s -L https://git.io/getLatestIstio | sh -
-	@cd istio-*
-	istioctl install --skip-confirmation
+	@cd istio-* && \
+	istioctl install --skip-confirmation && \
 	istioctl manifest install --set profile=default --skip-confirmation
 
-	@echo "Apply Prometheus for istio"
-	kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.17/samples/addons/prometheus.yaml
+	@echo "\n=== Apply Kiali for istio ==="
+	@cd istio-* && \
+	kubectl apply -f samples/addons/kiali.yaml
+
+	@echo "\n=== Apply Prometheus for istio ==="
+	@cd istio-* && \
+	kubectl apply -f samples/addons/prometheus.yaml
 
 flagger:
 	@echo "Setup Flagger"
 	kubectl apply -k github.com/fluxcd/flagger//kustomize/istio
-	kubectl apply -f ./setup/flagger -n istio-system
+	kubectl apply -f ./analysis-templates/flagger -n istio-system
 	@echo "flagger" > .canary 
 
 argo:
 	kubectl create namespace argo-rollouts
 	kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+	kubectl apply -n argo-rollouts -f ./analysis-templates/argo
 	@echo "argo" > .canary 
 
 deploy:
@@ -37,7 +43,7 @@ else
 	@exit 1
 endif
 	@echo "Deploy version ${version} -- ${ROLLOUT_TYPE} - ${APP_PATH}"
-	@bash -c "pushd ${APP_PATH} && kustomize edit set image eexit/mirror-http-server:${version} && kubectl apply -k ./ && popd"
+	@bash -c "cd ${APP_PATH} && kustomize edit set image eexit/mirror-http-server:${version} && kubectl apply -k ./"
 
 destroy:
 	minikube delete
