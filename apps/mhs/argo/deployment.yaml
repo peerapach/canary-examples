@@ -14,9 +14,15 @@ spec:
     spec:
       containers:
       - name: api-argo
-        image: eexit/mirror-http-server:1.1.0
+        image: peerapach/mirror-http-server:1.1.0
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        env:
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: environment-variables
+              key: APP_VERSION
   minReadySeconds: 30
   revisionHistoryLimit: 3
   strategy:

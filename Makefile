@@ -4,6 +4,7 @@ endef
 
 minikube:
 	minikube start --memory=10240 --cpus=4 --kubernetes-version=v1.25.2
+	minikube addons enable metrics-server
 
 istio:
 	@echo "install istio"
@@ -43,7 +44,7 @@ else
 	@exit 1
 endif
 	@echo "Deploy version ${version} -- ${ROLLOUT_TYPE} - ${APP_PATH}"
-	@bash -c "cd ${APP_PATH} && kustomize edit set image eexit/mirror-http-server:${version} && kubectl apply -k ./"
+	@bash -c "cd ${APP_PATH} && echo APP_VERSION=${version} > version.env && kustomize edit set image peerapach/mirror-http-server:${version} && kubectl apply -k ./"
 
 destroy:
 	minikube delete

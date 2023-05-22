@@ -1,0 +1,3 @@
+istio-*
+.canary
+version.env

@@ -11,6 +11,13 @@ resources:
 components:
 - ../common-gateway
 
+configMapGenerator:
+- envs:
+  - "version.env"
+  name: environment-variables
+
 images:
-- name: eexit/mirror-http-server
-  newTag: 1.1.0
+- name: peerapach/mirror-http-server
+  newTag: 1.1.2
+- name: peerapach/mirror-http-server
+  newTag: v1

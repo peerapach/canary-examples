@@ -19,9 +19,9 @@ spec:
     name: api-flagger
   service:
     # service port number
-    port: 80
+    port: 8080
     # container port number or name (optional)
-    targetPort: 80
+    targetPort: 8080
     # Istio gateways (optional)
     gateways:
     - api-gateway

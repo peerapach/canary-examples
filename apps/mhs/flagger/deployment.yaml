@@ -16,11 +16,17 @@ spec:
     spec:
       containers:
       - name: api-flagger
-        image: eexit/mirror-http-server:1.1.0
+        image: peerapach/mirror-http-server:1.1.0
         imagePullPolicy: IfNotPresent
+        env:
+        - name: APP_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: environment-variables
+              key: APP_VERSION
         ports:
           - name: http
-            containerPort: 80
+            containerPort: 8080
             protocol: TCP
         livenessProbe:
           httpGet:
